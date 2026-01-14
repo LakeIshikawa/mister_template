@@ -2,25 +2,24 @@ name: MiSTer-Build
 on: [push, workflow_dispatch]
 
 jobs:
-  build_core:
+  build:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/raetro/quartus:mister
-      # This bypasses the glibc/Node error for the container
-      env:
-        ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      # 1. Modern Checkout (Runs on host Ubuntu)
+      - uses: actions/checkout@v4
 
+      # 2. Run the old tool inside a transient container
       - name: Compile FPGA
         run: |
-          # We search for quartus_sh and run it immediately
-          $(find / -name quartus_sh -type f -executable -print -quit) --flow compile Template.qpf
+          docker run --rm \
+            -v ${{ github.workspace }}:/build \
+            -w /build \
+            ghcr.io/raetro/quartus:mister \
+            /bin/bash -c "$(find / -name quartus_sh -type f -executable -print -quit) --flow compile Template.qpf"
 
+      # 3. Modern Upload (Runs on host Ubuntu - NO ERROR)
       - name: Upload RBF
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: MiSTer-Release
           path: |
