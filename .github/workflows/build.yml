@@ -1,19 +1,24 @@
 name: MiSTer Build
-on:
-  push:
-    branches: [ "main", "master" ]
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/mister-devel/quartus:17.0
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Compile RBF
-        uses: MiSTer-devel/gh-action-build@main
+      - name: Compile
+        run: |
+          # This command starts the Quartus compiler using your .qpf file
+          quartus_sh --flow compile Template.qpf
+          
+      - name: Upload RBF
+        uses: actions/upload-artifact@v4
         with:
-          project: 'Template'
+          name: MiSTer-Core-RBF
+          path: output_files/*.rbf
