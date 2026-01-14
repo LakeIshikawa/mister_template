@@ -1,24 +1,11 @@
-name: build-rbf
-on: [push, workflow_dispatch]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Build Core
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/build \
-            -w /build \
-            ghcr.io/raetro/quartus:mister \
-            /bin/bash -c "/usr/local/quartus/bin/quartus_sh --flow compile Template.qpf"
-
-      - name: Upload Result
-        uses: actions/upload-artifact@v4
+- name: Build
+        uses: addnab/docker-run-action@v3
         with:
-          name: MiSTer-Core
-          path: |
-            *.rbf
-            output_files/*.rbf
+          image: ghcr.io/raetro/quartus:mister
+          options: -v ${{ github.workspace }}:/build
+          run: |
+            cd /build
+            # Find the path to quartus_sh and execute it
+            QPATH=$(find / -name quartus_sh -type f -executable -print -quit 2>/dev/null)
+            echo "Found Quartus at: $QPATH"
+            $QPATH --flow compile Template.qpf
