@@ -1,11 +1,28 @@
-- name: Build
-        uses: addnab/docker-run-action@v3
+name: MiSTer-Build
+on: [push, workflow_dispatch]
+
+jobs:
+  build_core:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/raetro/quartus:mister
+      # This bypasses the glibc/Node error for the container
+      env:
+        ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Compile FPGA
+        run: |
+          # We search for quartus_sh and run it immediately
+          $(find / -name quartus_sh -type f -executable -print -quit) --flow compile Template.qpf
+
+      - name: Upload RBF
+        uses: actions/upload-artifact@v3
         with:
-          image: ghcr.io/raetro/quartus:mister
-          options: -v ${{ github.workspace }}:/build
-          run: |
-            cd /build
-            # Find the path to quartus_sh and execute it
-            QPATH=$(find / -name quartus_sh -type f -executable -print -quit 2>/dev/null)
-            echo "Found Quartus at: $QPATH"
-            $QPATH --flow compile Template.qpf
+          name: MiSTer-Release
+          path: |
+            *.rbf
+            output_files/*.rbf
