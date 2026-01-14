@@ -4,22 +4,24 @@ on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
+    # This is the specific raetro container used for the most complex MiSTer cores
+    container:
+      image: ghcr.io/raetro/quartus:mister
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Build RBF
-        # This action automatically finds the .qpf and handles the Docker environment for you
-        uses: MiSTer-devel/gh-action-build@v0.6 
-        with:
-          project: 'Template'
+      - name: Compile
+        run: |
+          # Use the quartus_sh command directly inside the container
+          quartus_sh --flow compile Template.qpf
           
       - name: Upload RBF
         uses: actions/upload-artifact@v4
         with:
-          name: MiSTer-Core
+          name: MiSTer-Core-RBF
           path: |
             *.rbf
             output_files/*.rbf
