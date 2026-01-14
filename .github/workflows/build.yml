@@ -5,22 +5,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Compile in Container
-        # We run the Docker container as a single command instead of a job-wide setting
+      - uses: actions/checkout@v4
+      
+      - name: Build Core
         run: |
           docker run --rm \
             -v ${{ github.workspace }}:/build \
             -w /build \
             ghcr.io/raetro/quartus:mister \
-            /usr/local/quartus/bin/quartus_sh --flow compile Template.qpf
-          
-      - name: Upload RBF
-        # This now runs on the "Host" Ubuntu (which is modern)
+            /bin/bash -c "/usr/local/quartus/bin/quartus_sh --flow compile Template.qpf"
+
+      - name: Upload Result
         uses: actions/upload-artifact@v4
         with:
           name: MiSTer-Core
