@@ -1,29 +1,25 @@
-name: MiSTer Build
+name: build-rbf
 on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Using the most stable community image for Quartus 17.0
-    container:
-      image: setsoft/quartus:17.0 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Compile
-        run: |
-          # We call the quartus_sh tool directly
-          # Using 'dash' to ensure paths are handled correctly
-          /usr/local/quartus/bin/quartus_sh --flow compile Template.qpf
+      - name: Build RBF
+        # This action automatically finds the .qpf and handles the Docker environment for you
+        uses: MiSTer-devel/gh-action-build@v0.6 
+        with:
+          project: 'Template'
           
       - name: Upload RBF
         uses: actions/upload-artifact@v4
         with:
-          name: MiSTer-Core-RBF
-          # This looks for the RBF file in the output_files folder
+          name: MiSTer-Core
           path: |
-            output_files/*.rbf
             *.rbf
+            output_files/*.rbf
