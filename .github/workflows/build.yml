@@ -4,8 +4,9 @@ on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Using the most stable community image for Quartus 17.0
     container:
-      image: ghcr.io/mister-devel/quartus:17.0
+      image: setsoft/quartus:17.0 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -14,11 +15,15 @@ jobs:
 
       - name: Compile
         run: |
-          # This command starts the Quartus compiler using your .qpf file
-          quartus_sh --flow compile Template.qpf
+          # We call the quartus_sh tool directly
+          # Using 'dash' to ensure paths are handled correctly
+          /usr/local/quartus/bin/quartus_sh --flow compile Template.qpf
           
       - name: Upload RBF
         uses: actions/upload-artifact@v4
         with:
           name: MiSTer-Core-RBF
-          path: output_files/*.rbf
+          # This looks for the RBF file in the output_files folder
+          path: |
+            output_files/*.rbf
+            *.rbf
