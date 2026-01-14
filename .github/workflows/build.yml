@@ -1,0 +1,19 @@
+name: MiSTer Build
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Compile RBF
+        uses: MiSTer-devel/gh-action-build@main
+        with:
+          project: 'Template'
