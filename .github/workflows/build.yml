@@ -4,24 +4,26 @@ on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/raetro/quartus:mister
-      # This is the "Magic Sauce" for 2026 compatibility
-      env:
-        ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v3 # V3 is required for old glibc support
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      - name: Compile
+      - name: Compile in Container
+        # We run the Docker container as a single command instead of a job-wide setting
         run: |
-          # Use the absolute path inside the raetro container
-          /usr/local/quartus/bin/quartus_sh --flow compile Template.qpf
+          docker run --rm \
+            -v ${{ github.workspace }}:/build \
+            -w /build \
+            ghcr.io/raetro/quartus:mister \
+            /usr/local/quartus/bin/quartus_sh --flow compile Template.qpf
           
       - name: Upload RBF
-        uses: actions/upload-artifact@v3 # V3 is required for old glibc support
+        # This now runs on the "Host" Ubuntu (which is modern)
+        uses: actions/upload-artifact@v4
         with:
-          name: MiSTer-Core-RBF
+          name: MiSTer-Core
           path: |
             *.rbf
             output_files/*.rbf
