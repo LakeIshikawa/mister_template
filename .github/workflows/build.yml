@@ -1,25 +1,25 @@
-name: build-rbf
 on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    # This is the specific raetro container used for the most complex MiSTer cores
     container:
       image: ghcr.io/raetro/quartus:mister
     steps:
+      # Use v3 because it runs on Node 16 (compatible with older glibc)
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           submodules: recursive
 
       - name: Compile
         run: |
-          # Use the quartus_sh command directly inside the container
-          quartus_sh --flow compile Template.qpf
+          # The exact path to the compiler in this specific image
+          /usr/local/quartus/bin/quartus_sh --flow compile Template.qpf
           
+      # Use v3 to avoid the Node 20 / glibc error
       - name: Upload RBF
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: MiSTer-Core-RBF
           path: |
